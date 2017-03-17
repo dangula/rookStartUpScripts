@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: block-pv-claim
+  annotations:
+    volume.beta.kubernetes.io/storage-class: rook-block
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1M
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: block-test
+spec:
+      containers:
+      - image: dangula/rook-integration
+        name: block-test1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TestName
+          value: INSERT_TEST_TYPE
+        volumeMounts:
+        - name: block-persistent-storage
+          mountPath: /tmp/rook1
+      volumes:
+      - name: block-persistent-storage
+        persistentVolumeClaim:
+          claimName: block-pv-claim
+      restartPolicy: Never
