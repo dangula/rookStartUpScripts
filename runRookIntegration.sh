@@ -6,9 +6,9 @@ isPodUp(){
 	while [ $x -le 15 ]
 	do
 	  if [ "$#" -eq 3 ]; then
-	  	declare -i y=$(kubectl get pods -n $3 | grep $2 | wc -l )
+	  	declare -i y=$(kubectl get pods -n $3 2>/dev/null  | grep $2 | wc -l )
 	  else
-	  	declare -i y=$(kubectl get pods | grep $1 | wc -l )
+	  	declare -i y=$(kubectl get pods 2>/dev/null  | grep $1 | wc -l )
 	  fi	
 	  if [ $y -ge $2 ]
 		then
@@ -29,23 +29,13 @@ isPodUp(){
 }
 
 isPodRunning(){
-	if [ "$#" -eq 3 ]; then
-		ns=$1
-		pod=$2
-  	    count=$2
-  	    kube1= kubectl get pods -n $ns
-  	else
-  		pod=$1
-  	    count=$2
-  	    kube1= kubectl get pods
-  	fi
   	x=1
 	while [ $x -le 15 ]
 	do
 	  if [ "$#" -eq 3 ]; then
-	  	declare -i y=$(kubectl get pods -n $3 | grep $1 | awk '{print $3}' | grep Running | wc -l)
+	  	declare -i y=$(kubectl get pods -n $3 2>/dev/null | grep $1 | awk '{print $3}' | grep Running | wc -l)
 	  else
-	  	declare -i y=$(kubectl get pod | grep $1 | awk '{print $3}' | grep Running | wc -l)
+	  	declare -i y=$(kubectl get pod 2>/dev/null  | grep $1 | awk '{print $3}' | grep Running | wc -l)
 	  fi
 	  if [ $y -ge $2 ]
 		then
