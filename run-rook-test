@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -eu
+
+test-type=$1
+rook-op-tag=$2
+rook-cl-tag=$3
+
+cd /rookStartUpScripts/
+
+#TODO --> inline patch rook-operator.yaml with image tag
+#wait till running state
+
+#TODO --> inline patch rook-cluster.yaml with image tag
+#wait till running state
+
+#create and run test-pod
+sed 's#INSERT_TEST_TYPE#'$test-type'#' rook/block_test.yaml | kubectl create -f -
+
+#TODO --> wait for running, if time out, return error and pod logs output
+
+
+#TODO --> need to figure out how test pod is complete
+
