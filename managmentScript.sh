@@ -1,14 +1,19 @@
-docker tag quay.io/rook/rookd rookd-ci                                       
+#!/usr/bin/env bash
+
+
+# tag rook images - add '-ci' prefix to all of them
+docker tag quay.io/rook/rookd rookd-ci
 docker tag quay.io/rook/rook-operator rook-operator-ci                        
 docker tag quay.io/rook/rook-client rook-client-ci
 
 mkdir /to-host
 
+# tar ad zip all rook-ci images into a folder
 sudo docker save rookd-ci |gzip >/to-host/rookd-ci.tar.gz
 sudo docker save rook-operator-ci |gzip >/to-host/rook-operator-ci.tar.gz
 sudo docker save rook-client-ci |gzip >/to-host/rook-client-ci.tar.gz
 
-# update docker to run right dind container
+# update docker in docker contianer with the rook-ci images folder mounted
 docker run -it --net=host -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-host:/from-host -p 5000:5000 -p 8080:8080 rook-infra /sbin/init
 
 INFRA_DOCKER_ID=$(docker ps |grep rook-infra| awk '{ print $1}')

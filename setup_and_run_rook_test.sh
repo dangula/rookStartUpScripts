@@ -5,7 +5,7 @@
 #$1 - Pod name mask - required
 #$2 - number of pods expected to be up that match the pod name($1) - required
 #$3 - namespace the pods are expected to be in - optional
-isPodUp(){
+pod::isUp(){
   	x=1
 	while [ $x -le 15 ]
 	do
@@ -37,7 +37,7 @@ isPodUp(){
 #$1 - Pod name mask - required
 #$2 - number of pods expected to be in Running state that match the pod name($1) - required
 #$3 - namespace the pods are expected to be in - optional
-isPodRunning(){
+pod::isRunning(){
   	x=1
 	while [ $x -le 15 ]
 	do
@@ -68,7 +68,7 @@ isPodRunning(){
 #This function periodically checks the test pod logs to see if test passed
 #Exists successfully if tests have passed and logged a "PASS" message
 #Exits with return code 1 if tests have not passed.
-checkTestResult(){
+testpod::checkResult(){
 	pod=$1
 	x=1
 	while [ $x -le 10 ]
@@ -89,7 +89,7 @@ checkTestResult(){
 #Exists successfully if tests have passed and logged a "PASS" message
 #Exits with return code 1 if tests have not passed.
 
-checkTestResultInNameSpace(){
+testpod::checkResultsInNameSpace(){
 	pod=$1
 	x=1
 	while [ $x -le 8 ]
@@ -111,12 +111,12 @@ checkTestResultInNameSpace(){
 #Takes atleast 1 paramaters
 #$1 - Pod name mask - required
 #$2 - namespace the pods are expected to be in - optional
-isTestPodUp(){
+testpod::isUp(){
 	TestPodName=$1
 	if [ "$#" -eq 2 ]; then
-		isPodUp $TestPodName 1 $2
+		pod::isUp $TestPodName 1 $2
 	else
-		isPodUp $TestPodName 1
+		pod::isUp $TestPodName 1
 	fi
 	iretval=$?
 	if [ "$retval" == 0 ]
@@ -128,9 +128,9 @@ isTestPodUp(){
 	fi
 
 	if [ "$#" -eq 2 ]; then
-		isPodRunning $TestPodName 1 $2
+		pod::isRunning $TestPodName 1 $2
 	else
-		isPodRunning $TestPodName 1
+		pod::isRunning $TestPodName 1
 	fi
 	iretval=$?
 	if [ "$retval" == 0 ]
@@ -145,6 +145,28 @@ isTestPodUp(){
 	return 0
 }
 
+#Function to teardown test pods and all set up associated with it
+testpod::cleanup(){
+case $1 in
+
+    #teardown Block pod
+    [Bb][Ll][Oo][Cc][Kk])
+        kubectl delete -f rook/block_test.yaml
+		kubectl delete -f rook/rook-storageclass.yaml
+		kubectl delete -f rook/rook-pool.yaml
+      ;;
+    #teardown object pod
+    [Oo][Bb][Jj][Ee][Cc][Tt])
+        kubectl delete -f rook/object_test.yaml
+      ;;
+    #teardown file pod
+    [Ff][Ii][Ll][Ee])
+    	kubectl delete -f rook/file_test.yaml
+      ;;
+
+esac
+
+}
 
 
 
@@ -166,29 +188,27 @@ case $1 in
                 testPod=$?
 		if [ $testPod -ne 0 ]; then
 			echo "Could'nt start testPod"
+			testpod::cleanup block
 			exit 1
 		fi
-		isTestPodUp block-test
+		testpod::isUp block-test
 		TestPodUp=$?
 		if [ $TestPodUp -ne 0 ]; then
 			echo "Couldn't start Pod"
+			testpod::cleanup block
 			exit 1
 		fi
-		checkTestResult block-test
+		testpod::checkResult block-test
 		testRes=$?
 		if [ $testRes == 0 ]
 		then
 			echo "Block End 2 End Test Passed"
 		else
 			echo "Block End 2 End Test Failed"
-			kubectl delete -f rook/block_test.yaml
-		    kubectl delete -f rook/rook-storageclass.yaml
-		    kubectl delete -f rook/rook-pool.yaml
+			testpod::cleanup block
 			exit 1
 		fi
-		kubectl delete -f rook/block_test.yaml
-		kubectl delete -f rook/rook-storageclass.yaml
-		kubectl delete -f rook/rook-pool.yaml
+		testpod::cleanup block
 		exit 0
          ;;
     #Run Object Test
@@ -205,25 +225,27 @@ case $1 in
 		testPod=$?
 		if [ $testPod -ne 0 ]; then
 			echo "Could'nt start testPod"
+			testpod::cleanup object
 			exit 1
 		fi
-		isTestPodUp object-test rook
+		testpod::isUp object-test rook
 		TestPodUp=$?
 		if [ $TestPodUp -ne 0 ]; then
 			echo "Couldn't start Pod"
+			testpod::cleanup object
 			exit 1
 		fi
-		checkTestResultInNameSpace object-test rook
+		testpod::checkResultsInNameSpace object-test rook
 		testRes=$?
 		if [ $testRes == 0 ]
 		then
 			echo "Object End 2 End Test Passed"
 		else
 			echo "Object End 2 End Test Failed"
-	    	kubectl delete -f rook/object_test.yaml
+	    	testpod::cleanup object
 			exit 1
 		fi
-		kubectl delete -f rook/object_test.yaml
+		testpod::cleanup object
 		exit 0
          ;;
     #Run File Test
@@ -239,25 +261,27 @@ case $1 in
                 testPod=$?
 		if [ $testPod -ne 0 ]; then
 			echo "Could'nt start testPod"
+			testpod::cleanup file
 			exit 1
 		fi
-		isTestPodUp file-test rook
+		testpod::isUp file-test rook
 		TestPodUp=$?
 		if [ $TestPodUp -ne 0 ]; then
 			echo "Couldn't start Pod"
+			testpod::cleanup file
 			exit 1
 		fi
-		checkTestResultInNameSpace file-test rook
+		testpod::checkResultsInNameSpace file-test rook
 		testRes=$?
 		if [ $testRes == 0 ]
 		then
 			echo "File End 2 End Test Passed"
 		else
 			echo "File End 2 End Test Failed"
-			kubectl delete -f rook/file_test.yaml
+			testpod::cleanup file
 			exit 1
 		fi
-		kubectl delete -f rook/file_test.yaml
+		testpod::cleanup file
 		exit 0
          ;;
     *) echo "Invalid Test Flag used - only block,object or file allowed"
