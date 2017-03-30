@@ -142,6 +142,9 @@ function dind::prepare-sys-mounts {
     if [[ -d /dev ]]; then
       sys_volume_args+=(-v /dev:/dev)
     fi
+    if [[ -d /sys ]]; then
+      sys_volume_args+=(-v /sys:/sys)
+    fi
     return 0
   fi
   if ! dind::volume-exists kubeadm-dind-sys; then
