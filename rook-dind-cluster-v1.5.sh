@@ -142,7 +142,7 @@ function dind::prepare-sys-mounts {
     if [[ -d /dev ]]; then
       sys_volume_args+=(-v /dev:/dev)
     fi
-    if [[ -d /sys ]]; then
+    if [[ -d /sys/bus ]]; then
       sys_volume_args+=(-v /sys/bus:/sys/bus)
     fi
     return 0
