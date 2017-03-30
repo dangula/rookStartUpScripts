@@ -192,11 +192,13 @@ case $1 in
 		exit 0
          ;;
     #Run Object Test
-    [Oo][Bb][Jj][Ee][Cc][Tt])		echo "Start File Test Pod with Filesystem mounted"
-
-		echo "Create object store and a user - get connection info"
+    [Oo][Bb][Jj][Ee][Cc][Tt])
+		echo "Create object store and an object store user"
 		kubectl exec -it rook-client -n rook -- rook object create
 	    kubectl exec -it rook-client -n rook -- rook object user create rook-user "A rook rgw User"
+	    sleep 10
+	    kubectl exec -it rook-client -n rook -- rook object user create rook-user "A rook rgw User"
+	    sleep 5
         eval $(kubectl exec -it rook-client -n rook -- rook object connection rook-user --format env-var)
 		echo "start Object Test Pod with rook object store connection information"
   		sed 's#INSERT_TEST_TYPE#'object'#;s#AWS_ENDPOINT_VALUE#'$AWS_ENDPOINT'#;s#AWS_KEY_VALUE#'$AWS_ACCESS_KEY_ID'#;s#AWS_SECRET_VALUE#'$AWS_SECRET_ACCESS_KEY'#' rook/object_test.yaml | kubectl create -f -
@@ -228,6 +230,7 @@ case $1 in
     [Ff][Ii][Ll][Ee])
 		echo "set up filessytem in rook"
 		kubectl exec -it rook-client -n rook -- rook filesystem create --name testfs
+		sleep 10
 		export CEPH_MON0=$(kubectl -n rook get pod mon0 -o json|jq ".status.podIP"|tr -d "\""|sed -e 's/$/:6790/')
 		export CEPH_MON1=$(kubectl -n rook get pod mon1 -o json|jq ".status.podIP"|tr -d "\""|sed -e 's/$/:6790/')
 		export CEPH_MON2=$(kubectl -n rook get pod mon2 -o json|jq ".status.podIP"|tr -d "\""|sed -e 's/$/:6790/')
