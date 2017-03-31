@@ -803,7 +803,7 @@ case "${1:-}" in
     dind::ensure-kubectl
     if ! dind::check-for-snapshot; then
       force_make_binaries=y dind::up
-      dind::snapshot
+      #dind::snapshot
     else
       dind::restore
     fi
