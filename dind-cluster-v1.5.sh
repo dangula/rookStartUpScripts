@@ -139,12 +139,6 @@ function dind::prepare-sys-mounts {
     if [[ -d /lib/modules ]]; then
       sys_volume_args+=(-v /lib/modules:/lib/modules)
     fi
-    if [[ -d /dev ]]; then
-      sys_volume_args+=(-v /dev:/dev)
-    fi
-    if [[ -d /sys/bus ]]; then
-      sys_volume_args+=(-v /sys/bus:/sys/bus)
-    fi
     return 0
   fi
   if ! dind::volume-exists kubeadm-dind-sys; then
@@ -477,7 +471,7 @@ function dind::init {
   # So we just pick the line from 'kubeadm init' output
   kubeadm_join_flags="$(dind::kubeadm "${container_id}" init --skip-preflight-checks "$@" | grep '^ *kubeadm join' | sed 's/^ *kubeadm join //')"
   dind::configure-kubectl
-  #dind::deploy-dashboard
+  dind::deploy-dashboard
 }
 
 function dind::create-node-container {
@@ -803,7 +797,7 @@ case "${1:-}" in
     dind::ensure-kubectl
     if ! dind::check-for-snapshot; then
       force_make_binaries=y dind::up
-      #dind::snapshot
+      dind::snapshot
     else
       dind::restore
     fi
