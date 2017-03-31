@@ -251,6 +251,8 @@ case $1 in
     [Ff][Ii][Ll][Ee])
 		echo "set up filessytem in rook"
 		kubectl exec -it rook-client -n rook -- rook filesystem create --name testfs
+		sleep 5
+		kubectl exec -it rook-client -n rook -- rook filesystem create --name testfs
 		sleep 10
 		export CEPH_MON0=$(kubectl -n rook get pod mon0 -o json|jq ".status.podIP"|tr -d "\""|sed -e 's/$/:6790/')
 		export CEPH_MON1=$(kubectl -n rook get pod mon1 -o json|jq ".status.podIP"|tr -d "\""|sed -e 's/$/:6790/')
