@@ -1,9 +1,26 @@
 #!/usr/bin/env bash
 
+if [ "$#" -ne 1 ]; then
+	echo "illegal paramaters - script takes only one paramater - block,file or object"
+	exit 1
+fi
+
+case $1 in
+	[Bb][Ll][Oo][Cc][Kk])
+             ;;
+    [Ff][Ii][Ll][Ee])
+             ;;
+    [Oo][Bb][Jj][Ee][Cc][Tt])
+             ;;
+    *)
+		echo "invalid paramater - only block,file and object are allowed"
+        exit 1
+esac
+
 
 # tag rook images - add '-ci' prefix to all of them
 docker tag quay.io/rook/rookd rookd-ci
-docker tag quay.io/rook/rook-operator rook-operator-ci                        
+docker tag quay.io/rook/rook-operator rook-operator-ci
 docker tag quay.io/rook/rook-client rook-client-ci
 
 mkdir /to-host
@@ -27,7 +44,7 @@ echo $INFRA_DOCKER_ID
 
 #tail journalctl and check if rook is started successfully
 x=1
-while [ $x -le 15 ]
+while [ $x -le 20 ]
 do
     lastline=$(docker exec $INFRA_DOCKER_ID journalctl -u setup-rook-infra|tail -2)
     echo $lastline
@@ -35,24 +52,31 @@ do
 	break
     fi
     x=$(( $x + 1 ))
-    sleep 20
+    sleep 30
 done
 
 if [ $x -gt 15 ]; then
     echo "Rook Test infrasructure failed to start up"
-    exit 1
+    exit 1ls
+
 fi
 
 
-#TODO -Start rook operator,cluster and pool 
 
 #TODO-set up storage for test pod and start test pod
-#eg  docker docker exec $INFRA_DOCKER_ID /path/to/teststart.sh testparam
+chmod +x /etc/init.d/rookStartUpScripts/setup_and_run_rook_test.sh
+docker exec $INFRA_DOCKER_ID -- /etc/init.d/rookStartUpScripts/setup_and_run_rook_test.sh $1
 
-#TODO- tail test pod for results
-#docker docker exec $INFRA_DOCKER_ID kubectl logs block-test|tail -2
+res = $?
+if [ $res == 0 ]; then
+    echo "Integration test for $1 passed"
+    exit 0
+else
+   echo "Integration test for $1 Failed"
+   exit 1
 
 
-	 
+
+
 
 
