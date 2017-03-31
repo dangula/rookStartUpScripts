@@ -31,7 +31,8 @@ sudo docker save rook-operator-ci |gzip >/to-host/rook-operator-ci.tar.gz
 sudo docker save rook-client-ci |gzip >/to-host/rook-client-ci.tar.gz
 
 # update docker in docker contianer with the rook-ci images folder mounted
-docker run -it --net=host -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-host:/from-host -p 5000:5000 -p 8080:8080 rook-infra /sbin/init
+#docker run -it --net=host -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-host:/from-#host -p 5000:5000 -p 8080:8080 rook-infra /sbin/init
+docker run -it -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /dev:/dev -v /sys:/sys -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-rook:/from-host -p 5000:5000 -p 8080:8080 rook_infra /sbin/init
 
 INFRA_DOCKER_ID=$(docker ps |grep rook-infra| awk '{ print $1}')
 
@@ -43,6 +44,7 @@ echo $INFRA_DOCKER_ID
 #eg  docker docker exec $INFRA_DOCKER_ID /path/to/start.sh
 
 #tail journalctl and check if rook is started successfully
+docker exec $INFRA_DOCKER_ID -- /usr/bin/setup-rook-test-infra
 x=1
 while [ $x -le 20 ]
 do
@@ -64,8 +66,8 @@ fi
 
 
 #TODO-set up storage for test pod and start test pod
-chmod +x /etc/init.d/rookStartUpScripts/setup_and_run_rook_test.sh
-docker exec $INFRA_DOCKER_ID -- /etc/init.d/rookStartUpScripts/setup_and_run_rook_test.sh $1
+docker exec $INFRA_DOCKER_ID chmod +x /usr/bin/rookStartUpScripts/setup_and_run_rook_test.sh
+docker exec $INFRA_DOCKER_ID /usr/bin/rookStartUpScripts/setup_and_run_rook_test.sh $1
 
 res = $?
 if [ $res == 0 ]; then
