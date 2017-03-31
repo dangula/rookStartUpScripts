@@ -34,42 +34,21 @@ sudo docker save rook-client-ci |gzip >/to-host/rook-client-ci.tar.gz
 #docker run -it --net=host -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-host:/from-#host -p 5000:5000 -p 8080:8080 rook-infra /sbin/init
 docker run -it -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /dev:/dev -v /sys:/sys -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-rook:/from-host -p 5000:5000 -p 8080:8080 rook_infra /sbin/init
 
-INFRA_DOCKER_ID=$(docker ps |grep rook-infra| awk '{ print $1}')
-
-sleep 20
+sleep 3
+INFRA_DOCKER_ID=$(docker ps |grep rook_infra| awk '{ print $1}')
 
 echo $INFRA_DOCKER_ID
 
-# do docker exec to start kubeadm and rook -TODO?
-#eg  docker docker exec $INFRA_DOCKER_ID /path/to/start.sh
-
-#tail journalctl and check if rook is started successfully
-docker exec $INFRA_DOCKER_ID -- /usr/bin/setup-rook-test-infra
-x=1
-while [ $x -le 20 ]
-do
-    lastline=$(docker exec $INFRA_DOCKER_ID journalctl -u setup-rook-infra|tail -2)
-    echo $lastline
-    if [[ "$lastline" == *"Rook Test infrastructure setup is complete"* ]]; then
-	break
-    fi
-    x=$(( $x + 1 ))
-    sleep 30
-done
-
-if [ $x -gt 15 ]; then
-    echo "Rook Test infrasructure failed to start up"
-    exit 1ls
-
-fi
+#Set yo k8s via kubeadm and run rook operator,cluster and client
+docker exec $INFRA_DOCKER_ID /usr/bin/setup-rook-test-infra
 
 
 
-#TODO-set up storage for test pod and start test pod
-docker exec $INFRA_DOCKER_ID chmod +x /usr/bin/rookStartUpScripts/setup_and_run_rook_test.sh
-docker exec $INFRA_DOCKER_ID /usr/bin/rookStartUpScripts/setup_and_run_rook_test.sh $1
+#start test Pod and run it
+docker exec $INFRA_DOCKER_ID chmod +x /rookStartUpScripts/setup_and_run_rook_test.sh
+docker exec $INFRA_DOCKER_ID /rookStartUpScripts/setup_and_run_rook_test.sh $1
 
-res = $?
+res=$?
 if [ $res == 0 ]; then
     echo "Integration test for $1 passed"
     exit 0
