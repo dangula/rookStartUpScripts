@@ -23,13 +23,13 @@ case $1 in
         sudo docker save rook-operator-ci |gzip >/to-host/rook-operator-ci.tar.gz
         sudo docker save rook-client-ci |gzip >/to-host/rook-client-ci.tar.gz
 
-        return docker run -it -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /dev:/dev -v /sys:/sys -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-rook:/from-host -p 5000:5000 -p 8080:8080 rook_infra /sbin/init
+        result=docker run -it -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /dev:/dev -v /sys:/sys -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-rook:/from-host -p 5000:5000 -p 8080:8080 rook_infra /sbin/init
         ;;
     # Install K8s and Rook
     [Ii][Nn][Ss][Tt][Aa][Ll])
         if [ "$#" -ne 2 ]; then
             echo "illegal parameters - expected install <validDockerId>"
-            exit1
+            exit 1
         fi
         docker exec $2 /usr/bin/setup-rook-test-infra
         exit 0
@@ -54,6 +54,8 @@ case $1 in
 		echo "invalid parameters - valid parameters, start,install <dockerId>,run <dockerId> <test type>"
         exit 1
 esac
+
+return result
 
 
 
