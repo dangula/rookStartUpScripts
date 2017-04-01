@@ -19,12 +19,11 @@ case $1 in
         sudo mkdir /to-host
 
         # tar ad zip all rook-ci images into a folder
-        sudo docker save rookd-ci |gzip >/to-host/rookd-ci.tar.gz
-        sudo docker save rook-operator-ci |gzip >/to-host/rook-operator-ci.tar.gz
-        sudo docker save rook-client-ci |gzip >/to-host/rook-client-ci.tar.gz
+        sudo docker save rookd-ci |gzip >/to-host/rookd-ci.tar
+        sudo docker save rook-operator-ci |gzip >/to-host/rook-operator-ci.tar
+        sudo docker save rook-client-ci |gzip >/to-host/rook-client-ci.tar
 
         docker run -it -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /dev:/dev -v /sys:/sys -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-host:/from-host -p 5000:5000 -p 8080:8080 quay.io/quantum/rook-test /sbin/init
-        echo result
         ;;
     # Install K8s and Rook
     [Ii][Nn][Ss][Tt][Aa][Ll][Ll])
