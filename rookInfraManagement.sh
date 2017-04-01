@@ -27,7 +27,7 @@ case $1 in
         echo result
         ;;
     # Install K8s and Rook
-    [Ii][Nn][Ss][Tt][Aa][Ll])
+    [Ii][Nn][Ss][Tt][Aa][Ll][Ll])
         if [ "$#" -ne 2 ]; then
             echo "illegal parameters - expected install <validDockerId>"
             exit 1
