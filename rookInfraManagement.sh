@@ -23,7 +23,8 @@ case $1 in
         sudo docker save rook-operator-ci |gzip >/to-host/rook-operator-ci.tar.gz
         sudo docker save rook-client-ci |gzip >/to-host/rook-client-ci.tar.gz
 
-        result=docker run -it -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /dev:/dev -v /sys:/sys -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-rook:/from-host -p 5000:5000 -p 8080:8080 rook_infra /sbin/init
+        docker run -it -e "container=docker" --privileged -d --security-opt seccomp:unconfined --cap-add=SYS_ADMIN -v /dev:/dev -v /sys:/sys -v /sys/fs/cgroup:/sys/fs/cgroup -v /sbin/modprobe:/sbin/modprobe -v /lib/modules:/lib/modules:rw -v /to-host:/from-host -p 5000:5000 -p 8080:8080 quay.io/quantum/rook-test /sbin/init
+        echo result
         ;;
     # Install K8s and Rook
     [Ii][Nn][Ss][Tt][Aa][Ll])
@@ -54,11 +55,3 @@ case $1 in
 		echo "invalid parameters - valid parameters, start,install <dockerId>,run <dockerId> <test type>"
         exit 1
 esac
-
-return result
-
-
-
-
-
-
