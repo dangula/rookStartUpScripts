@@ -55,3 +55,4 @@ if [ $res == 0 ]; then
 else
    echo "Integration test for $1 Failed"
    exit 1
+fi
